@@ -1,3 +1,21 @@
+//! This module is centered around the `ChainState` type, defining it and providing
+//! implementations for the [BlockchainInterface] and [UpdatableChainstate] traits.
+//!
+//! Consequently, `ChainState` serves as the blockchain backend for our node and is
+//! the highest-level type in `floresta-chain`. It is responsible for:
+//!
+//! - Keeping track of the chain state, and using a [ChainStore] for persisted storage
+//! - Correctly updating the state with the help of the `consensus.rs` functions
+//! - Interfacing with other components, and providing data about the current view of the chain
+//!
+//! The primary methods for updating our state are [ChainState::accept_header], which constructs
+//! a chain of headers, and [ChainState::connect_block], which verifies the corresponding blocks.
+//!
+//! Key types:
+//! - [ChainState]: The high-level chain backend
+//! - [ChainStateInner]: Inner `ChainState` type that is guarded by a lock
+//! - [BlockConsumer]: Trait for receiving new block notifications
+//! - [BestChain]: Tracks the current best chain and alternative forks
 extern crate alloc;
 
 pub mod chain_state;
@@ -158,10 +176,10 @@ pub trait UpdatableChainstate {
     fn mark_chain_as_assumed(&self, acc: Stump, tip: BlockHash) -> Result<bool, BlockchainError>;
 }
 
-/// [ChainStore] is a trait defining how we interact with our chain database. This definitions
-/// will be used by the [ChainState] to save and retrieve data about the blockchain, likely
+/// This trait is defining how we interact with our chain database. This definitions
+/// will be used by the [ChainState](chain_state::ChainState) to save and retrieve data about the blockchain, likely
 /// on disk.
-/// Right now, you can use the [KvChainStore] in your code, it implements this trait and
+/// Right now, you can use the [KvChainStore](chainstore::KvChainStore) in your code, it implements this trait and
 /// uses a key-value store to save data.
 /// The [DatabaseError] is a simple trait that can be implemented by any error type that
 /// implements [std::error::Error] and [std::fmt::Display]. This is useful to abstract
